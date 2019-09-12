@@ -43,7 +43,9 @@ describe("basic get and post", () => {
   });
 
   test("response contains places with right content", async() => {
+    await api.get("/api/places/cache/clear");
     const response = await api.get("/api/places");
+    console.log("response.body:", response.body);
     expect(response.body);
     const {description, ...expectedResult} = testPlace;
     expect(response.body).toMatchObject([expectedResult]);
@@ -100,6 +102,8 @@ describe("single place", () => {
     expect(response.body.comments[0]).toMatchObject({ content: "ddddd" });
   });
 });
+
+
 
 afterAll(() => {
   mongoose.connection.close()

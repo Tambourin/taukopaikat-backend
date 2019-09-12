@@ -11,7 +11,9 @@ router.get("/", cache.getCache, async (request, response, next) => {
     if (!places || places.length === 0) {
       return response.status(404).send({ error: "no content found" });
     }      
-    response.locals.data = googleService.appendPlaceInfo(places);
+    console.log("places", places);
+    response.locals.data = await googleService.appendPlaces(places);
+    console.log(response.locals.data);
     next();
   } catch(exception) {
     return response.status(500).end();
