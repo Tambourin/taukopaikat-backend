@@ -5,7 +5,7 @@ const Place = require("../models/placeModel");
 const api = supertest(app);
 
 const testPlace = {
-  name: "Testi paikka",
+  name: "ABC Hirvaskangas",
   highway: 4,  
   description: "Tämä on kuvaus",
   images: [ ],  
@@ -44,8 +44,7 @@ describe("basic get and post", () => {
 
   test("response contains places with right content", async() => {
     await api.get("/api/places/cache/clear");
-    const response = await api.get("/api/places");
-    console.log("response.body:", response.body);
+    const response = await api.get("/api/places");    
     expect(response.body);
     const {description, ...expectedResult} = testPlace;
     expect(response.body).toMatchObject([expectedResult]);

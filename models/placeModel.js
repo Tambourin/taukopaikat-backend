@@ -25,6 +25,8 @@ const placeSchema = new mongoose.Schema({
   comments: [ commentSchema ]  
 });
 
+//placeSchema.set('toObject', { getters: true });
+
 const Place = mongoose.model("Place", placeSchema);
 
 module.exports = Place;

@@ -3,11 +3,11 @@ const NodeCache = require("node-cache");
 const cache = new NodeCache({ stdTTL: 5 * 60 });
 
 const getCache = (request, response, next) => {  
-  const content = cache.get(request.url);  
-  if (!content) {
+  const content = cache.get(request.url);    
+  if (!content) {    
     return next();
-  }   
-  response.status(200).send(content);  
+  }      
+  return response.status(200).send(content);  
 }
 
 const setCache = (request, response, next) => {
@@ -15,6 +15,21 @@ const setCache = (request, response, next) => {
   return response.status(200).send(response.locals.data);
 }
 
+const updateCache = (request, response, next) => {
+  const cacheContent = cache.get(request.url);
+  if (!cacheContent) {
+    return response.status(200).send(response.locals.data);
+  }     
+  const updatedPlace = response.locals.data        
+  if(Array.isArray(cacheContent)) {
+    const updatedContent = cacheContent.map(place => place._id === updatedPlace._id ? updatedPlace : place);
+    cache.set(request.url, updatedContent);
+  } else {
+    cache.set(request.url, updatedPlace);   
+  }  
+  return response.status(200).send(response.locals.data);
+}
+
 const flush = () => cache.flushAll();
 
-module.exports = { getCache, setCache, flush };
+module.exports = { getCache, setCache, updateCache, flush };

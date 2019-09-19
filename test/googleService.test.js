@@ -38,9 +38,8 @@ const testPlaces = [
 test("objects in a list are appended with new properties", async () => {
   const newList = await googleService.appendPlaces(testPlaces);
   newList.forEach(element => {
-    console.log(element);
     expect(element).toHaveProperty("address");
-    expect(element).toHaveProperty("openNow");
+    expect(element).toHaveProperty("openingHours");
     expect(element).toHaveProperty("googleRating");
     expect(element).toHaveProperty("coordinates");
   });   
