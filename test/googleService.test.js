@@ -45,7 +45,3 @@ test("objects in a list are appended with new properties", async () => {
   });   
 });
 
-//test("can get response from Google", async () => {
-//  const results = await googleService.searchGooglePlaces(testPlaces[0]);
-//  expect(Object.keys(results).sort()).toEqual([ "formatted_address", "geometry", "opening_hours", "rating" ].sort());
-//});

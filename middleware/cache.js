@@ -1,12 +1,13 @@
 const NodeCache = require("node-cache");
 
-const cache = new NodeCache({ stdTTL: 5 * 60 });
+const cache = new NodeCache({ stdTTL: 60 * 60 * 24 }); // expires in 24 h
 
-const getCache = (request, response, next) => {  
+const getCache = (request, response, next) => {
   const content = cache.get(request.url);    
   if (!content) {    
     return next();
   }      
+  console.log("cached");
   return response.status(200).send(content);  
 }
 

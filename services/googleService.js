@@ -3,9 +3,9 @@ const axios = require("axios");
 
 const KEY = process.env.GOOGLE_API_KEY;
 const QUERY_FIELDS_SIMPLE_SEARCH =
-  "formatted_address,rating,opening_hours,geometry,permanently_closed";
+  "geometry,photos";
 const QUERY_FIELDS_EXTENDED_SEARCH = 
-  ""
+  "formatted_address,rating,opening_hours,geometry,permanently_closed,photos";
 
 const searchGooglePlace = (place, queryFields) => {
   const searchWord = place.name;
@@ -14,10 +14,7 @@ const searchGooglePlace = (place, queryFields) => {
   );
 };
 
-const append = async place => {
-  if (place._doc) {
-    place = place._doc;
-  }
+const append = async place => { 
   try {
     const searchResponse = await searchGooglePlace(
       place,
@@ -26,10 +23,8 @@ const append = async place => {
     const propertiesFromGoogle = searchResponse.data.candidates[0];
     const appendedPlace = {
       ...place,
-      address: propertiesFromGoogle.formatted_address,
-      coordinates: propertiesFromGoogle.geometry.location,
-      openingHours: propertiesFromGoogle.opening_hours,
-      googleRating: propertiesFromGoogle.rating
+      coordinates: propertiesFromGoogle.geometry.location,      
+      googleImages: [propertiesFromGoogle.photos[0].photo_reference]
     };
     return appendedPlace;
   } catch {
