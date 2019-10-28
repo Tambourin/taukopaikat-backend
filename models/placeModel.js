@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const uniqueValidator = require("mongoose-unique-validator");
 
 const commentSchema = new mongoose.Schema({
   content: String,
@@ -7,24 +8,39 @@ const commentSchema = new mongoose.Schema({
 });
 
 const placeSchema = new mongoose.Schema({
-  name: String,
-  highway: Number,  
-  description: String,
+  name: {
+    type:String,
+    required: true,
+    unique: true
+  },
+  highway: {
+    type: Number,
+    required: true
+  },  
+  description: {
+    type: String,
+    required: true
+  },
+  city: {
+    type: String,
+    required: true
+  },
   votes: Number,  
   images: [ String ],  
   services: {
     doesNotBelongToChain: Boolean,
     isOpenTwentyFourHours: Boolean,
-    hasPlayground: Boolean,
-    hasRestaurant: Boolean,
-    hasCofee: Boolean,
+    hasBeenAvarded: Boolean,    
     isAttraction: Boolean,
+    isSummerCafe: Boolean,   
     isGasStation: Boolean,
-    isGrill: Boolean
+    isGrill: Boolean       
   },
-  comments: [ commentSchema ]  
+  comments: [ commentSchema ],
+  googlePlaceId: String
 });
 
+placeSchema.plugin(uniqueValidator);
 placeSchema.set('toObject', { virtuals: true });
 commentSchema.set('toObject', { virtuals: true });
 

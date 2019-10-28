@@ -8,16 +8,17 @@ const testPlace = {
   name: "ABC Hirvaskangas",
   highway: 4,  
   description: "Tämä on kuvaus",
+  city: "Äänekoski",
   images: [ ],  
   services: {
-    doesNotBelongToChain: true,
+    doesNotBelongToChain: false,
     isOpenTwentyFourHours: true,
     hasPlayground: true,
     hasRestaurant: true,
     hasCofee: true,
-    isAttraction: true,
+    isAttraction: false,
     isGasStation: true,
-    isGrill: true
+    isGrill: false
   }
 };
 
@@ -36,6 +37,10 @@ describe("basic get and post", () => {
       .expect(200);
   });
   
+  test("posted place gets right googlePlaceID", async () => {
+    expect(postedPlace.body.googlePlaceId).toBe("ChIJP51vnAylhUYRQ1KYuEzpfmk");
+  })
+
   test("return 404 if no content in db", async () => {
     await Place.deleteMany({});    
     await api.get("/api/places/cache/clear");
@@ -87,7 +92,7 @@ describe("single place", () => {
     expect(response.body).toHaveProperty("_id");
   });
 
-  test("posting with false id return error", async () => {
+  test("posting with comment false id return error", async () => {
     await api.post("/api/places/falseId/comments")
       .send({ content: "ddddd" })
       .expect(400);

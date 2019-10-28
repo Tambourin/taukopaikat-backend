@@ -55,13 +55,7 @@ test("can get response for singlePlace GET", async () => {
   expect(response.body).toMatchObject(testPlace);
 });
 
-test("single place data is cached", async () => {
-  await api.get("/api/places/" + postedPlace._id).expect(200);
-  await Place.deleteMany({});
-  await api.get("/api/places/" + postedPlace._id).expect(200);
-  await api.get("/api/places/cache/clear");
-  await api.get("/api/places/" + postedPlace._id).expect(404);
-});
+
 
 test("put place", async () => {
   expect(postedPlace.highway).toBe(4);

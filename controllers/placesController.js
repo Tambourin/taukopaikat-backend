@@ -1,23 +1,32 @@
 require("dotenv").config();
 const router = require("express").Router();
+const jwtCheck = require("../middleware/tokenValidation");
 const Place = require("../models/placeModel");
 const cache = require("../middleware/cache");
 const googleService = require("../services/googleService");
 const imageService = require("../services/imageService");
 
-const SIMPLE_SELECT = "name highway votes images services comments";
+if (process.env.NODE_ENV !== "test") {
+  router.post("*", jwtCheck, (request, response, next) => {
+    next();
+  });
+  router.put("*", jwtCheck, (request, response, next) => {
+    next();
+  });
+}
+
 
 router.get(
   "/",
   cache.getCache,
   async (request, response, next) => {
     try {      
-      const places = await Place.find({}).select(SIMPLE_SELECT);      
+      const places = await Place.find({});      
       if (!places || places.length === 0) {
         return response.status(404).send({ error: "no content found" });
       }
-      const placesObject = places.map(place => place.toObject());
-      response.locals.data = await googleService.appendPlaces(placesObject);      
+      const placesObjects = places.map(place => place.toObject());
+      response.locals.data = await googleService.appendPlaces(placesObjects);      
       return next();
     } catch (exception) {
       return response.status(500).send(exception.message);
@@ -28,28 +37,40 @@ router.get(
 
 router.get("/delete", async (request, response) => {
   console.log("delete");
+  cache.flush();
   await Place.deleteMany({});
   response.status(204).end();
 });
 
 router.get(
-  "/:id",
-  cache.getCache, 
+  "/:PlaceId",
+  cache.getCache,
   async (request, response, next) => {
     try {
-      const place = await Place.findById(request.params.id);     
+      const place = await Place.findById(request.params.PlaceId);     
       if (!place) {
         return response.status(404).end();
-      }
-      response.locals.data = place.toObject();
+      }      
+      response.locals.data = await googleService.appendSinglePlace(place.toObject());
       return next();
     } catch (exception) {
       console.log(exception);
-      return response.status(400).send({ error: "cast error" });
+      return response.status(400).end();
     }
   },
   cache.setCache
 );
+
+router.get("/:placeId/google", async (request, response) => {
+  try {
+    const place = await Place.findById(request.params.placeId);
+    const googleData = await googleService.getGoogleData(place.googlePlaceId);
+    response.send(googleData);
+  } catch(error) {
+    console.log(error);
+    return response.status(400).send({ error: error });
+  }
+});
 
 router.get("/cache/clear", (request, response) => {
   if (process.env.NODE_ENV !== "test") {
@@ -59,40 +80,48 @@ router.get("/cache/clear", (request, response) => {
   response.status(202).end();
 });
 
-router.post("/", async (request, response) => {
-  const newImageId = await imageService.uploadImage(request.body.imageData);  
-  const place = new Place({
-    name: request.body.name,
-    description: request.body.description,
-    votes: 0,
-    highway: request.body.highway,
-    comments: [],
-    images: newImageId ? [newImageId] : [],
-    services: {
-      doesNotBelongToChain: request.body.services.doesNotBelongToChain,
-      isOpenTwentyFourHours: request.body.services.isOpenTwentyFourHours,
-      hasPlayground: request.body.services.hasPlayground,
-      hasRestaurant: request.body.services.hasRestaurant,
-      hasCofee: request.body.services.hasCofee,
-      isAttraction: request.body.services.isAttraction,
-      isGasStation: request.body.services.isGasStation,
-      isGrill: request.body.services.isGasStation
-    }
-  });
-  try {
-    const savedPlace = await place.save();
+router.post("/", async (request, response) => {  
+  try {  
+    let newImageId;
+    if (request.body.imageData) {
+      newImageId = await imageService.uploadImage(request.body.imageData);
+    } else {
+      newImageId = null;
+    }  
+    const googlePlaceId = await googleService.searchGooglePlaceId(request.body.name);   
+    
+    const place = new Place({
+      name: request.body.name,
+      description: request.body.description,
+      votes: request.body.votes ? request.body.votes : 0,
+      highway: request.body.highway,
+      city: request.body.city,
+      comments: [],
+      images: newImageId ? [newImageId] : [],
+      services: {
+        doesNotBelongToChain: request.body.services.doesNotBelongToChain,
+        isOpenTwentyFourHours: request.body.services.isOpenTwentyFourHours,
+        hasBeenAvarded: request.body.services.hasBeenAvarded,
+        isAttraction: request.body.services.isAttraction,
+        isSummerCafe: request.body.services.isSummerCafe,
+        isGasStation: request.body.services.isGasStation,
+        isGrill: request.body.services.isGrill
+      },
+      googlePlaceId: googlePlaceId
+    });
+  
+    const savedPlace = await place.save();    
+    const responsePlace = await googleService.appendSinglePlace(savedPlace.toObject());
     cache.flush();
-    response.send(savedPlace.toObject());
+    response.send(responsePlace);
   } catch (exception) {
-    console.log(exception);
-    response.status(500).send({ error: "error saving place " });
+    console.log(exception.message);
+    response.status(500).send({ error: "error saving place " + exception.message });
   }
 });
 
-
-
 router.put(
-  "/:placeId", 
+  "/:placeId",
   async (request, response, next) => {  
     try {
       const place = await Place.findByIdAndUpdate(
@@ -100,50 +129,34 @@ router.put(
         request.body, 
         { new: true } 
       );      
-      response.locals.data = place.toObject();
-      next();
+      cache.flush();
+      response.send({ ...request.body, ...place.toObject() });
+      
     } catch (exception) {
       console.log(exception);
       response.status(500).send({ error: "error updating place " });
     } 
-  }
-  ,cache.updateCache
+  }  
 );
 
-router.get("/:placeId/comments", async (request, response) => {
-  try {
-    const comments = await Place.findById(request.params.placeId).select(
-      "comments"
-    );
-    if (!comments) {
-      return response.status(404).end();
-    }
-    response.send(comments);
-  } catch (exception) {
-    return response.status(400).send({ error: "cast error" });
-  }
-  
-});
 
-router.post("/:placeId/comments", async (request, response) => {
-  let place;
-  try {
-    place = await Place.findById(request.params.placeId);    
-    if (!place) {
-      response.status(404).end();
-    }
-    place.comments.push(request.body);    
-  } catch (exception) {
-    response.status(400).send({ error: exception.message });
-  }
-  try {
-    await place.save();
-    response.send(place.comments[place.comments.length - 1].toObject());
-  } catch (exception) {
-    response.status(500).end();
-  }
-});
 
+router.post("/:placeId/images", async (request, response, next) => {  
+  try {
+    const newImageId = await imageService.uploadImage(request.body.imageData);
+    if (newImageId === null) {
+      return response.status(500).send({ error: "could not save image-file"} );
+    }    
+    const place = await Place.findById(request.params.placeId);  
+    const placeObject = place.toObject();  
+    const newPlace = { ...placeObject, images: [ ...placeObject.images, newImageId ] };   
+    const updatedPlace = await Place.findByIdAndUpdate(place.id, newPlace, { new: true });  
+    cache.flush();  
+    response.send(updatedPlace.toObject());
+  } catch (exception) {
+    response.status(500).send({ error: exception.message });
+  }  
+});
 
 
 module.exports = router;
