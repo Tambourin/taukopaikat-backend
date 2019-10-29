@@ -15,11 +15,11 @@ if (process.env.NODE_ENV !== "test") {
   });
 }
 
-
 router.get(
   "/",
   cache.getCache,
   async (request, response, next) => {
+    console.log(process.env.NODE_ENV);
     try {      
       const places = await Place.find({});      
       if (!places || places.length === 0) {
