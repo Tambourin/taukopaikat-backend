@@ -9,7 +9,6 @@ const votesController = require("./controllers/votesController");
 const commentsController = require("./controllers/commentsController");
 
 let uri = process.env.MONGODB_TEST_URI;
-console.log(process.env.NODE_ENV);
 if(process.env.NODE_ENV === "development" || process.env.NODE_ENV === "production") {
   uri = process.env.MONGODB_URI;
 }

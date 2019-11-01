@@ -10,9 +10,6 @@ if (process.env.NODE_ENV !== "test") {
   router.post("*", jwtCheck, (request, response, next) => {
     next();
   });
-  router.put("*", jwtCheck, (request, response, next) => {
-    next();
-  });
 }
 
 router.get(
