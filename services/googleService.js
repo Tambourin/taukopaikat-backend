@@ -27,9 +27,7 @@ const getGooglePlaceDetails = (placeId, queryFields) => {
 }
 
 const append = async (place, queryString) => {
-  if(!place.googlePlaceId) {
-    place.googlePlaceId = searchGooglePlaceId(place.name);
-  }
+  
   try {
     const searchResponse = await getGooglePlaceDetails(
       place.googlePlaceId,
