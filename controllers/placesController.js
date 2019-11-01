@@ -6,15 +6,15 @@ const cache = require("../middleware/cache");
 const googleService = require("../services/googleService");
 const imageService = require("../services/imageService");
 
-if (process.env.NODE_ENV !== "test") {
+/*if (process.env.NODE_ENV !== "test") {
   router.post("*", jwtCheck, (request, response, next) => {
     next();
   });
-}
+}*/
 
 router.get(
   "/",
-  cache.getCache,
+ // cache.getCache,
   async (request, response, next) => {
     console.log(process.env.NODE_ENV);
     try {      
@@ -77,7 +77,7 @@ router.get("/cache/clear", (request, response) => {
   response.status(202).end();
 });
 
-router.post("/", async (request, response) => {  
+router.post("/", jwtCheck, async (request, response) => {  
   try {  
     let newImageId;
     if (request.body.imageData) {
@@ -138,7 +138,7 @@ router.put(
 
 
 
-router.post("/:placeId/images", async (request, response, next) => {  
+router.post("/:placeId/images", jwtCheck, async (request, response, next) => {  
   try {
     const newImageId = await imageService.uploadImage(request.body.imageData);
     if (newImageId === null) {

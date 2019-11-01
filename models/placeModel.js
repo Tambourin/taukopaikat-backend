@@ -17,10 +17,7 @@ const placeSchema = new mongoose.Schema({
     type: Number,
     required: true
   },  
-  description: {
-    type: String,
-    required: true
-  },
+  description: String,
   city: {
     type: String,
     required: true

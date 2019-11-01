@@ -19,7 +19,7 @@ mongoose.connect(uri, { useNewUrlParser: true })
   .catch(() => console.log("error connecting mongoDB"));
 
 app.use(cors());
-app.use(bodyParser.json({ limit: "5MB" } ));
+app.use(bodyParser.json({ limit: "10MB" } ));
 app.use("/api/places", placeController);
 app.use("/api/places", votesController);
 app.use("/api/places", commentsController);

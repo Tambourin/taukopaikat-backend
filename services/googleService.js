@@ -8,11 +8,14 @@ const QUERY_FIELDS_EXTENDED_SEARCH =
   "formatted_address,rating,opening_hours,geometry,permanently_closed,photos,website";
 
 const searchGooglePlaceId = async (searchWord) => {
+  console.log(searchWord);
   const encodedSearchWord = encodeURI(searchWord);  
+  console.log(encodedSearchWord); 
   const response = await axios.get(
     `https://maps.googleapis.com/maps/api/place/findplacefromtext/json?input=${encodedSearchWord}&inputtype=textquery&fields=place_id&key=${KEY}`
   );
-  if (response.data.candidates[0]) {
+  console.log(response.data.candidates[0]);
+  if (response.data.candidates[0]) {    
     return response.data.candidates[0].place_id;
   } else {
     return null;
@@ -23,7 +26,10 @@ const getGooglePlaceDetails = (placeId, queryFields) => {
   return axios.get(`https://maps.googleapis.com/maps/api/place/details/json?place_id=${placeId}&inputtype=textquery&fields=${queryFields}&language=fi&key=${KEY}`);
 }
 
-const append = async (place, queryString) => {   
+const append = async (place, queryString) => {
+  if(!place.googlePlaceId) {
+    place.googlePlaceId = searchGooglePlaceId(place.name);
+  }
   try {
     const searchResponse = await getGooglePlaceDetails(
       place.googlePlaceId,
@@ -48,7 +54,7 @@ const appendPlaces = async places => {
   return await Promise.all(places.map(place => append(place, QUERY_FIELDS_SIMPLE_SEARCH)));
 };
 
-const appendSinglePlace = async place => {
+const appendSinglePlace = async place => {  
   return await append(place, QUERY_FIELDS_SIMPLE_SEARCH);
 }
 
