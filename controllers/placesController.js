@@ -6,17 +6,23 @@ const cache = require("../middleware/cache");
 const googleService = require("../services/googleService");
 const imageService = require("../services/imageService");
 
-/*if (process.env.NODE_ENV !== "test") {
+//if (process.env.NODE_ENV !== "test") {
   router.post("*", jwtCheck, (request, response, next) => {
     next();
   });
-}*/
+  router.put("*", jwtCheck, (request, response, next) => {
+    next();
+  });
+  router.delete("*", jwtCheck, (request, response, next) => {
+    next();
+  });
+//}
 
 router.get(
   "/",
- // cache.getCache,
-  async (request, response, next) => {
-    console.log(process.env.NODE_ENV);
+  cache.getCache,
+  
+  async (request, response, next) => {    
     try {      
       const places = await Place.find({});      
       if (!places || places.length === 0) {
@@ -32,12 +38,14 @@ router.get(
   cache.setCache
 );
 
-router.get("/delete", async (request, response) => {
-  console.log("delete");
-  cache.flush();
-  await Place.deleteMany({});
-  response.status(204).end();
-});
+if (process.env.NODE_ENV === "test") {
+  router.get("/delete", async (request, response) => {
+    console.log("delete");
+    cache.flush();
+    await Place.deleteMany({});
+    response.status(204).end();
+  });
+}
 
 router.get(
   "/:PlaceId",
@@ -63,9 +71,9 @@ router.get("/:placeId/google", async (request, response) => {
     const place = await Place.findById(request.params.placeId);
     const googleData = await googleService.getGoogleData(place.googlePlaceId);
     response.send(googleData);
-  } catch(error) {
-    console.log(error);
-    return response.status(400).send({ error: error });
+  } catch(exception) {
+    console.log(exception);
+    return response.status(400).send({ error: exception });
   }
 });
 
@@ -77,7 +85,7 @@ router.get("/cache/clear", (request, response) => {
   response.status(202).end();
 });
 
-router.post("/", jwtCheck, async (request, response) => {  
+router.post("/", async (request, response) => {  
   try {  
     let newImageId;
     if (request.body.imageData) {
@@ -121,14 +129,13 @@ router.put(
   "/:placeId",
   async (request, response, next) => {  
     try {
-      const place = await Place.findByIdAndUpdate(
-        request.params.placeId,
-        request.body, 
-        { new: true } 
-      );      
+      const place = await Place.findById(request.params.placeId);
+      place.city = request.body.city;
+      place.highway = request.body.highway;
+      place.services = request.body.services;
+      place.save();
       cache.flush();
-      response.send({ ...request.body, ...place.toObject() });
-      
+      response.send(place.toObject());
     } catch (exception) {
       console.log(exception);
       response.status(500).send({ error: "error updating place " });
@@ -138,7 +145,7 @@ router.put(
 
 
 
-router.post("/:placeId/images", jwtCheck, async (request, response, next) => {  
+router.post("/:placeId/images", async (request, response, next) => {  
   try {
     const newImageId = await imageService.uploadImage(request.body.imageData);
     if (newImageId === null) {

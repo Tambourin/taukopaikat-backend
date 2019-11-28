@@ -26,8 +26,7 @@ const getGooglePlaceDetails = (placeId, queryFields) => {
   return axios.get(`https://maps.googleapis.com/maps/api/place/details/json?place_id=${placeId}&inputtype=textquery&fields=${queryFields}&language=fi&key=${KEY}`);
 }
 
-const append = async (place, queryString) => {
-  
+const append = async (place, queryString) => {  
   try {
     const searchResponse = await getGooglePlaceDetails(
       place.googlePlaceId,

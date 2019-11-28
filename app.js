@@ -18,7 +18,22 @@ mongoose.connect(uri, { useNewUrlParser: true })
   .then(() => console.log("connected to mongoDB"))
   .catch(() => console.log("error connecting mongoDB"));
 
-app.use(cors());
+const corsWhiteList = ["http://localhost:3000"];
+ 
+var corsOptions = {  
+  origin: (origin, callback) => {
+    if (corsWhiteList.indexOf(origin) !== -1) {
+      callback(null, true)
+    } else {
+      callback(new Error('Not allowed by CORS'))
+    }
+  }
+}
+
+console.log(process.env.NODE_ENV);
+
+process.env.NODE_ENV === "test" ? app.use(cors()) : app.use(cors(corsOptions));
+app.options("/api/places/:placeId/votes", cors());
 app.use(bodyParser.json({ limit: "10MB" } ));
 app.use("/api/places", placeController);
 app.use("/api/places", votesController);

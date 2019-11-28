@@ -22,7 +22,7 @@ const placeSchema = new mongoose.Schema({
     type: String,
     required: true
   },
-  votes: Number,  
+  votes: [],  
   images: [ String ],  
   services: {
     doesNotBelongToChain: Boolean,

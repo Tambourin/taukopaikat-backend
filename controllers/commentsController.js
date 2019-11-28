@@ -25,7 +25,8 @@ router.post("/:placeId/comments", jwtCheck, async (request, response) => {
     if (!place) {
       response.status(404).end();
     }
-    place.comments.push(request.body);   
+    const newComment = { ...request.body, date: new Date() }
+    place.comments.push(newComment);   
     await place.save();
     response.send(place.comments[place.comments.length - 1].toObject()); 
   } catch (exception) {
