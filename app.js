@@ -18,7 +18,7 @@ mongoose.connect(uri, { useNewUrlParser: true })
   .then(() => console.log("connected to mongoDB"))
   .catch(() => console.log("error connecting mongoDB"));
 
-const corsWhiteList = ["http://localhost:3000", "http://taukopaikat-backend.herokuapp.com"];
+const corsWhiteList = ["http://localhost:3000", "http://taukopaikat.herokuapp.com"];
  
 var corsOptions = {  
   origin: (origin, callback) => {
