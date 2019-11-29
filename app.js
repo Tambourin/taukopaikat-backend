@@ -34,7 +34,10 @@ console.log(process.env.NODE_ENV);
 
 //process.env.NODE_ENV === "test" ? app.use(cors()) : app.use(cors(corsOptions));
 app.options("/api/places/:placeId/votes", cors());
-app.use(express.static("build"));
+app.use(express.static(path.join(__dirname, 'build')));
+app.get('/*', function (req, res) {
+  res.sendFile(path.join(__dirname, 'build', 'index.html'));
+});
 app.use(bodyParser.json({ limit: "10MB" } ));
 app.use("/api/places", placeController);
 app.use("/api/places", votesController);
