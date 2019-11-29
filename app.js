@@ -32,8 +32,9 @@ var corsOptions = {
 
 console.log(process.env.NODE_ENV);
 
-process.env.NODE_ENV === "test" ? app.use(cors()) : app.use(cors(corsOptions));
+//process.env.NODE_ENV === "test" ? app.use(cors()) : app.use(cors(corsOptions));
 app.options("/api/places/:placeId/votes", cors());
+app.use(express.static("build"));
 app.use(bodyParser.json({ limit: "10MB" } ));
 app.use("/api/places", placeController);
 app.use("/api/places", votesController);
