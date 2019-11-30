@@ -1,5 +1,6 @@
 require("dotenv").config();
 const express = require("express");
+const path = require("path");
 const app = express();
 const mongoose = require("mongoose");
 const cors = require("cors");
@@ -32,12 +33,20 @@ var corsOptions = {
 
 console.log(process.env.NODE_ENV);
 
-//process.env.NODE_ENV === "test" ? app.use(cors()) : app.use(cors(corsOptions));
-app.options("/api/places/:placeId/votes", cors());
+
+if(process.env.NODE_ENV !== "production") {
+  app.use(cors());
+}
+
+
 app.use(express.static(path.join(__dirname, 'build')));
-app.get('/*', function (req, res) {
+app.get('/redirect', function (req, res) {
   res.sendFile(path.join(__dirname, 'build', 'index.html'));
 });
+app.get('/places/*', function (req, res) {
+  res.sendFile(path.join(__dirname, 'build', 'index.html'));
+});
+app.options("/api/places/:placeId/votes", cors());
 app.use(bodyParser.json({ limit: "10MB" } ));
 app.use("/api/places", placeController);
 app.use("/api/places", votesController);
