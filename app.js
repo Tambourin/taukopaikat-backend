@@ -18,7 +18,7 @@ mongoose.set('useFindAndModify', false);
 mongoose.connect(uri, { useNewUrlParser: true })
   .then(() => console.log("connected to mongoDB"))
   .catch(() => console.log("error connecting mongoDB"));
-
+/*
 const corsWhiteList = ["http://localhost:3000", "http://taukopaikat.herokuapp.com"];
  
 var corsOptions = {  
@@ -30,7 +30,7 @@ var corsOptions = {
     }
   }
 }
-
+*/
 console.log(process.env.NODE_ENV);
 
 
@@ -39,7 +39,9 @@ if(process.env.NODE_ENV !== "production") {
 }
 
 
-app.use(express.static(path.join(__dirname, 'build')));
+app.use(express.static(path.join(__dirname, 'build'), {
+  etag: false
+}));
 app.get('/redirect', function (req, res) {
   res.sendFile(path.join(__dirname, 'build', 'index.html'));
 });
