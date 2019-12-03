@@ -34,11 +34,10 @@ var corsOptions = {
 console.log(process.env.NODE_ENV);
 
 
-//if(process.env.NODE_ENV !== "production") {
+if(process.env.NODE_ENV !== "production") {
   app.use(cors());
-//}
+}
 
-/*
 app.use(express.static(path.join(__dirname, 'build'), {
   etag: false
 }));
@@ -47,7 +46,7 @@ app.get('/redirect', function (req, res) {
 });
 app.get('/places/*', function (req, res) {
   res.sendFile(path.join(__dirname, 'build', 'index.html'));
-});*/
+});
 app.options("/api/places/:placeId/votes", cors());
 app.use(bodyParser.json({ limit: "10MB" } ));
 app.use("/api/places", placeController);
