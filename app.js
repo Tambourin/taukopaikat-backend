@@ -4,51 +4,52 @@ const path = require("path");
 const app = express();
 const mongoose = require("mongoose");
 const cors = require("cors");
+const jwtCheck = require("./middleware/tokenValidation");
 const bodyParser = require("body-parser");
 const placeController = require("./controllers/placesController");
 const votesController = require("./controllers/votesController");
 const commentsController = require("./controllers/commentsController");
 
-let uri = process.env.MONGODB_TEST_URI;
+let databaseUri = process.env.MONGODB_TEST_URI;
 if(process.env.NODE_ENV === "development" || process.env.NODE_ENV === "production") {
-  uri = process.env.MONGODB_URI;
+databaseUri = process.env.MONGODB_URI;
 }
   
 mongoose.set('useFindAndModify', false);
-mongoose.connect(uri, { useNewUrlParser: true })
+mongoose.connect(databaseUri, { useNewUrlParser: true })
   .then(() => console.log("connected to mongoDB"))
   .catch(() => console.log("error connecting mongoDB"));
-/*
-const corsWhiteList = ["http://localhost:3000", "http://taukopaikat.herokuapp.com"];
- 
-var corsOptions = {  
-  origin: (origin, callback) => {
-    if (corsWhiteList.indexOf(origin) !== -1) {
-      callback(null, true)
-    } else {
-      callback(new Error('Not allowed by CORS'))
-    }
-  }
-}
-*/
-console.log(process.env.NODE_ENV);
 
+console.log(process.env.NODE_ENV);
 
 if(process.env.NODE_ENV !== "production") {
   app.use(cors());
 }
 
+app.use(bodyParser.json({ limit: "20MB" } ));
 app.use(express.static(path.join(__dirname, 'build'), {
   etag: false
 }));
-app.get('/redirect', function (req, res) {
+app.get("*", (req, res, next) => {
+  console.log(req.headers);
+  next();
+})
+app.get('/redirect', (req, res) => {
   res.sendFile(path.join(__dirname, 'build', 'index.html'));
 });
-app.get('/places/*', function (req, res) {
+app.get('/places/*', (req, res) => {
   res.sendFile(path.join(__dirname, 'build', 'index.html'));
+});
+app.post("*", jwtCheck, (request, response, next) => {
+  next();
+});
+app.put("*", jwtCheck, (request, response, next) => {
+  next();
+});
+app.delete("*", jwtCheck, (request, response, next) => {
+  next();
 });
 app.options("/api/places/:placeId/votes", cors());
-app.use(bodyParser.json({ limit: "10MB" } ));
 app.use("/api/places", placeController);
 app.use("/api/places", votesController);
 app.use("/api/places", commentsController);

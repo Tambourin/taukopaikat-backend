@@ -8,9 +8,8 @@ const QUERY_FIELDS_EXTENDED_SEARCH =
   "formatted_address,rating,opening_hours,geometry,permanently_closed,photos,website";
 
 const searchGooglePlaceId = async (searchWord) => {
-  console.log(searchWord);
   const encodedSearchWord = encodeURI(searchWord);  
-  console.log(encodedSearchWord); 
+  console.log(encodedSearchWord);
   const response = await axios.get(
     `https://maps.googleapis.com/maps/api/place/findplacefromtext/json?input=${encodedSearchWord}&inputtype=textquery&fields=place_id&key=${KEY}`
   );

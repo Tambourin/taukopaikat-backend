@@ -15,7 +15,7 @@ const setCache = (request, response, next) => {
   cache.set(request.url, response.locals.data);
   return response.status(200).send(response.locals.data);
 }
-
+/*
 const updateCache = (request, response, next) => {
   const cacheContent = cache.get(request.url);
   if (!cacheContent) {
@@ -30,7 +30,7 @@ const updateCache = (request, response, next) => {
   }  
   return response.status(200).send(response.locals.data);
 }
-
+*/
 const flush = () => cache.flushAll();
 
-module.exports = { getCache, setCache, updateCache, flush };
+module.exports = { getCache, setCache, flush };

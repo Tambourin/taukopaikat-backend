@@ -1,6 +1,5 @@
 const router = require("express").Router();
 const Place = require("../models/placeModel");
-const jwtCheck = require("../middleware/tokenValidation");
 const cache = require("../middleware/cache");
 
 router.get("/:placeId/comments", async (request, response) => {
@@ -17,15 +16,14 @@ router.get("/:placeId/comments", async (request, response) => {
   }  
 });
 
-router.post("/:placeId/comments", jwtCheck, async (request, response) => {
-  let place;
+router.post("/:placeId/comments", async (request, response) => {
   cache.flush();  
   try {
-    place = await Place.findById(request.params.placeId);    
+    const place = await Place.findById(request.params.placeId);    
     if (!place) {
       response.status(404).end();
     }
-    const newComment = { ...request.body, date: new Date() }
+    const newComment = { ...request.body, date: new Date() };
     place.comments.push(newComment);   
     await place.save();
     response.send(place.comments[place.comments.length - 1].toObject()); 

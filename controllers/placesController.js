@@ -1,27 +1,14 @@
 require("dotenv").config();
 const router = require("express").Router();
-const jwtCheck = require("../middleware/tokenValidation");
 const Place = require("../models/placeModel");
 const cache = require("../middleware/cache");
 const googleService = require("../services/googleService");
 const imageService = require("../services/imageService");
 
-//if (process.env.NODE_ENV !== "test") {
-  router.post("*", jwtCheck, (request, response, next) => {
-    next();
-  });
-  router.put("*", jwtCheck, (request, response, next) => {
-    next();
-  });
-  router.delete("*", jwtCheck, (request, response, next) => {
-    next();
-  });
-//}
 
 router.get(
   "/",
-  cache.getCache,
-  
+  cache.getCache,  
   async (request, response, next) => {    
     try {      
       const places = await Place.find({});      
@@ -38,18 +25,8 @@ router.get(
   cache.setCache
 );
 
-if (process.env.NODE_ENV === "test") {
-  router.get("/delete", async (request, response) => {
-    console.log("delete");
-    cache.flush();
-    await Place.deleteMany({});
-    response.status(204).end();
-  });
-}
-
 router.get(
   "/:PlaceId",
-  cache.getCache,
   async (request, response, next) => {
     try {
       const place = await Place.findById(request.params.PlaceId);     
@@ -62,8 +39,7 @@ router.get(
       console.log(exception);
       return response.status(400).end();
     }
-  },
-  cache.setCache
+  }
 );
 
 router.get("/:placeId/google", async (request, response) => {
@@ -77,15 +53,8 @@ router.get("/:placeId/google", async (request, response) => {
   }
 });
 
-router.get("/cache/clear", (request, response) => {
-  if (process.env.NODE_ENV !== "test") {
-    return response.status(401).end();
-  }
-  cache.flush();
-  response.status(202).end();
-});
-
-router.post("/", async (request, response) => {  
+router.post("/", async (request, response) => { 
+  cache.flush(); 
   try {  
     let newImageId;
     if (request.body.imageData) {
@@ -93,12 +62,12 @@ router.post("/", async (request, response) => {
     } else {
       newImageId = null;
     }  
-    const googlePlaceId = await googleService.searchGooglePlaceId(request.body.name);   
+    const googlePlaceId = await googleService.searchGooglePlaceId(request.body.name + " " + request.body.city);   
     
     const place = new Place({
       name: request.body.name,
       description: request.body.description,
-      votes: request.body.votes ? request.body.votes : 0,
+      votes: request.body.votes ? request.body.votes : [],
       highway: request.body.highway,
       city: request.body.city,
       comments: [],
@@ -110,15 +79,15 @@ router.post("/", async (request, response) => {
         isAttraction: request.body.services.isAttraction,
         isSummerCafe: request.body.services.isSummerCafe,
         isGasStation: request.body.services.isGasStation,
-        isGrill: request.body.services.isGrill
+        isGrill: request.body.services.isGrill,
+        isBakery: request.body.services.isBakery,
+        hasMarketplace: request.body.services.hasMarketplace
       },
       googlePlaceId: googlePlaceId
     });
   
     const savedPlace = await place.save();    
-    const responsePlace = await googleService.appendSinglePlace(savedPlace.toObject());
-    cache.flush();
-    response.send(responsePlace);
+    response.send(await googleService.appendSinglePlace(savedPlace.toObject()));
   } catch (exception) {
     console.log(exception.message);
     response.status(500).send({ error: "error saving place " + exception.message });
@@ -127,14 +96,14 @@ router.post("/", async (request, response) => {
 
 router.put(
   "/:placeId",
-  async (request, response, next) => {  
+  async (request, response, next) => {    
+    cache.flush();
     try {
       const place = await Place.findById(request.params.placeId);
       place.city = request.body.city;
       place.highway = request.body.highway;
       place.services = request.body.services;
       place.save();
-      cache.flush();
       response.send(place.toObject());
     } catch (exception) {
       console.log(exception);
@@ -143,9 +112,8 @@ router.put(
   }  
 );
 
-
-
-router.post("/:placeId/images", async (request, response, next) => {  
+router.post("/:placeId/images", async (request, response) => {  
+  cache.flush();
   try {
     const newImageId = await imageService.uploadImage(request.body.imageData);
     if (newImageId === null) {
@@ -154,13 +122,25 @@ router.post("/:placeId/images", async (request, response, next) => {
     const place = await Place.findById(request.params.placeId);  
     const placeObject = place.toObject();  
     const newPlace = { ...placeObject, images: [ ...placeObject.images, newImageId ] };   
-    const updatedPlace = await Place.findByIdAndUpdate(place.id, newPlace, { new: true });  
-    cache.flush();  
+    const updatedPlace = await Place.findByIdAndUpdate(place.id, newPlace, { new: true });    
     response.send(updatedPlace.toObject());
   } catch (exception) {
     response.status(500).send({ error: exception.message });
   }  
 });
 
+if (process.env.NODE_ENV === "test") {
+  router.get("/delete", async (request, response) => {
+    console.log("delete");
+    cache.flush();
+    await Place.deleteMany({});
+    response.status(204).end();
+  });
+
+  router.get("/cache/clear", (request, response) => {
+    cache.flush();
+    response.status(202).end();
+  });
+}
 
 module.exports = router;

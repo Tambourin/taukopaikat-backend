@@ -4,7 +4,6 @@ const googleService = require("../services/googleService");
 const cache = require("../middleware/cache");
 
 router.post("/:placeId/votes", async (request, response) => {
-  console.log("user:", request.user);
   cache.flush(); 
   try {
     const place = await Place.findById(request.params.placeId);
@@ -20,7 +19,6 @@ router.post("/:placeId/votes", async (request, response) => {
 router.delete("/:placeId/votes", async (request, response) => {  
   cache.flush(); 
   try {
-    console.log("delete");
     const place = await Place.findById(request.params.placeId);
     place.votes = place.votes.filter(
       vote => vote !== request.user.sub
