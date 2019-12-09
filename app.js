@@ -45,6 +45,9 @@ app.get('/redirect', (req, res) => {
 app.get('/places/*', (req, res) => {
   res.sendFile(path.join(__dirname, 'build', 'index.html'));
 });
+app.get('/privacy', (req, res) => {
+  res.sendFile(path.join(__dirname, 'build', 'index.html'));
+});
 app.post("*", jwtCheck, (request, response, next) => {
   next();
 });
