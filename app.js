@@ -25,6 +25,11 @@ console.log(process.env.NODE_ENV);
 if(process.env.NODE_ENV !== "production") {
   app.use(cors());
 }
+if(process.env.NODE_ENV === "production") {
+  app.use(cors({
+    origin: 'https://www.taukopaikat.fi'
+  }));
+}
 
 app.use(bodyParser.json({ limit: "20MB" } ));
 app.use(express.static(path.join(__dirname, 'build'), {
