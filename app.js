@@ -6,6 +6,7 @@ const mongoose = require("mongoose");
 const cors = require("cors");
 const jwtCheck = require("./middleware/tokenValidation");
 const bodyParser = require("body-parser");
+const httpRedirect = require("./middleware/httpRedirect");
 const placeController = require("./controllers/placesController");
 const votesController = require("./controllers/votesController");
 const commentsController = require("./controllers/commentsController");
@@ -31,6 +32,7 @@ if(process.env.NODE_ENV === "production") {
   }));
 }
 
+app.use(httpRedirect);
 app.use(bodyParser.json({ limit: "20MB" } ));
 app.use(express.static(path.join(__dirname, 'build'), {
   etag: false
