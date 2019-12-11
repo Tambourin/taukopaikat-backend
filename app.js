@@ -31,7 +31,7 @@ if(process.env.NODE_ENV === "production") {
     origin: 'https://www.taukopaikat.fi'
   }));
 }
-
+app.enable('trust proxy');
 app.use(httpRedirect);
 app.use(bodyParser.json({ limit: "20MB" } ));
 app.use(express.static(path.join(__dirname, 'build'), {
