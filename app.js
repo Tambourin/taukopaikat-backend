@@ -6,7 +6,7 @@ const mongoose = require("mongoose");
 const cors = require("cors");
 const jwtCheck = require("./middleware/tokenValidation");
 const bodyParser = require("body-parser");
-const httpRedirect = require("./middleware/httpRedirect");
+const httpToHttpsRedirect = require("./middleware/httpToHttpsRedirect");
 const placeController = require("./controllers/placesController");
 const votesController = require("./controllers/votesController");
 const commentsController = require("./controllers/commentsController");
@@ -17,7 +17,7 @@ databaseUri = process.env.MONGODB_URI;
 }
   
 mongoose.set('useFindAndModify', false);
-mongoose.connect(databaseUri, { useNewUrlParser: true })
+mongoose.connect(databaseUri, { useNewUrlParser: true, useUnifiedTopology: true })
   .then(() => console.log("connected to mongoDB"))
   .catch(() => console.log("error connecting mongoDB"));
 
@@ -31,16 +31,12 @@ if(process.env.NODE_ENV === "production") {
     origin: 'https://www.taukopaikat.fi'
   }));
 }
-app.enable('trust proxy');
-app.use(httpRedirect);
+app.enable("trust proxy");
+app.use(httpToHttpsRedirect);
 app.use(bodyParser.json({ limit: "20MB" } ));
 app.use(express.static(path.join(__dirname, 'build'), {
   etag: false
 }));
-app.get("*", (req, res, next) => {
-  console.log(req.headers);
-  next();
-})
 app.get('/redirect', (req, res) => {
   res.sendFile(path.join(__dirname, 'build', 'index.html'));
 });
