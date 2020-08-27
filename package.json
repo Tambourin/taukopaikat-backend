@@ -21,7 +21,7 @@
     "express": "^4.17.1",
     "express-jwt": "^5.3.1",
     "jwks-rsa": "^1.6.0",
-    "mongoose": "^5.7.5",
+    "mongoose": "^5.8.2",
     "mongoose-unique-validator": "^2.0.3",
     "node-cache": "^4.2.1"
   },
